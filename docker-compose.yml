@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  api:
+    container_name: django_api
+    image: api_django_drf
+    restart: always
+    build:
+      context: admin
+      dockerfile: Dockerfile
+    command: bash -c "python /app/backend/admin/manage.py makemigrations --noinput &&
+      python /app/backend/admin/manage.py migrate --noinput &&
+      python /app/backend/admin/manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app/backend
+    depends_on:
+      - data_base
+  data_base:
+    container_name: django_db_api
+    image: postgres:13.4
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ytrewq
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - .dbdata:/var/lib/postgresql/data
+  frontend:
+    container_name: vue-front
+    image: vue-frontend
+    restart: always
+    build:
+      context: vue-frontendproject
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./vue-frontendproject:/app/frontend
+    depends_on:
+      - api
+volumes:
+  dbdata:
